@@ -1,6 +1,6 @@
 package com.drewweise.provisions.recipe.model;
 
-import com.drewweise.provisions.user.User;
+import com.drewweise.provisions.user.model.User;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;

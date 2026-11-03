@@ -20,7 +20,7 @@ function App() {
 
   return (
       <main>
-        <h1>Provisions</h1>
+        <h1>Tend</h1>
         <p>Your personal food-planning space.</p>
 
           {recipeList.map(recipe => (
