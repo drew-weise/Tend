@@ -1,10 +1,6 @@
 package com.drewweise.provisions.user.model;
 
-import com.drewweise.provisions.recipe.model.Recipe;
 import jakarta.persistence.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -19,62 +15,22 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private int userId;
-    /** The user's displayName. */
 
-    @Column(name = "display_name", nullable = false)
-    private String displayName;
-
-    /** The user's email address. */
-    @Column(name = "email", nullable = false, unique = true)
-    private String email;
-
-    @OneToMany(
-            mappedBy = "user",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.EAGER
-    )
-    private List<Recipe> recipes = new ArrayList<>();
+    @Column(name = "cognito_user_id", nullable = false, unique = true)
+    private String cognitoUserId;
 
     /** Required by Hibernate. */
-    public User() {
-    }
+    public User() {}
 
-    /** Creates a user with the given account information. */
-    public User(String displayName, String email, String passwordHash) {
-        this.displayName = displayName;
-        this.email = email;
-    }
+    /** Creates a user associated with a Cognito account. */
+    public User(String cognitoUserId) {this.cognitoUserId = cognitoUserId;}
 
     /** @return the user's ID */
     public int getUserId() {
         return userId;
     }
 
-    /** @return the user's recipes */
-    public List<Recipe> getRecipes() {return recipes;}
-
-    /** Sets the user's recipes */
-    public void setRecipes(List<Recipe> recipes) {this.recipes = recipes;}
-
-    /** @return the user's displayName */
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    /** Sets the user's displayName. */
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    /** @return the user's email */
-    public String getEmail() {
-        return email;
-    }
-
-    /** Sets the user's email. */
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    /** Gets the user's cognitoUserId */
+    public String getCognitoUserId() {return cognitoUserId;}
 
 }

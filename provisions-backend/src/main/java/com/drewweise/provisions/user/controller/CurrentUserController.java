@@ -15,8 +15,7 @@ public class CurrentUserController {
             @AuthenticationPrincipal OidcUser user) {
 
         return Map.of(
-                "subject", user.getSubject(),
-                "email", user.getEmail()
+                "cognitoUserId", user.getSubject()
         );
     }
 }
