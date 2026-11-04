@@ -11,11 +11,8 @@ import java.util.Map;
 public class CurrentUserController {
 
     @GetMapping("/api/me")
-    public Map<String, String> currentUser(
-            @AuthenticationPrincipal OidcUser user) {
+    public Map<String, String> currentUser(@AuthenticationPrincipal OidcUser user) {
 
-        return Map.of(
-                "cognitoUserId", user.getSubject()
-        );
+        return Map.of("cognitoUserId", user.getSubject());
     }
 }
