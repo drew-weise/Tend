@@ -1,10 +1,13 @@
 import AuthGuard from './components/AuthGuard'
 import Dashboard from './components/Dashboard'
+import AppLayout from './components/layout/AppLayout'
 
 function App() {
     return (
         <AuthGuard>
-            <Dashboard />
+            <AppLayout>
+                <Dashboard />
+            </AppLayout>
         </AuthGuard>
     )
 }
