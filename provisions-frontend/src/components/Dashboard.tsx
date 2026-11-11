@@ -1,7 +1,9 @@
-import { useUser } from '../hooks/useUser'
-
 export default function Dashboard() {
-    const { user } = useUser()
-
-    return <h1>Welcome to Tend</h1>
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-stone-100">
+            <h1 className="text-5xl font-bold text-emerald-700">
+                Welcome to Tend
+            </h1>
+        </div>
+    )
 }
