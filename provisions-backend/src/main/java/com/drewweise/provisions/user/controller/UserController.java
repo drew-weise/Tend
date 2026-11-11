@@ -22,9 +22,7 @@ public class UserController {
     public Map<String, Object> currentUser(@AuthenticationPrincipal Jwt jwt) {
 
         User user = userRepository.findByCognitoUserId(jwt.getSubject())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "No matching database user"
-                ));
+                .orElseGet(() -> userRepository.save(new User(jwt.getSubject())));
 
         return Map.of(
                 "userId", user.getUserId(),

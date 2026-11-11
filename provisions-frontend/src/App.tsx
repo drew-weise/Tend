@@ -1,7 +1,12 @@
-import Login from './components/Login'
+import AuthGuard from './components/AuthGuard'
+import Dashboard from './components/Dashboard'
 
 function App() {
-    return <Login />
+    return (
+        <AuthGuard>
+            <Dashboard />
+        </AuthGuard>
+    )
 }
 
 export default App
