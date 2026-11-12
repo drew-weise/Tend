@@ -1,6 +1,6 @@
-# Provisions
+# Tend
 
-Provisions is a personal food-life planning system.
+Tend is an adaptable personal food-life planning system.
 
 It helps people plan, track, and make decisions about everything they eat: home-cooked meals, simple foods, snacks, leftovers, restaurant meals, takeout, groceries, and meals they have not decided on yet.
 
@@ -18,7 +18,7 @@ Real life does not work that way.
 
 People eat leftovers. They grab a bagel and coffee. They make a quick sandwich. They buy a prepared meal from the grocery store. They order takeout because they are tired. They cook when they have time. Plans change based on budget, cravings, energy, schedule, dietary needs, and what is already in the kitchen.
 
-Provisions brings those decisions together into one system.
+Tend brings those decisions together into one system.
 
 ## Product Vision
 
@@ -73,7 +73,7 @@ For example, a planned Jersey Mike’s lunch should affect a user’s calendar, 
 
 ## Conversational AI Assistant
 
-The Provisions chatbot is not just a recipe chatbot. It should act as a conversational control surface for the user’s food life.
+The Tend chatbot is not just a recipe chatbot. It should act as a conversational control surface for the user’s food life.
 
 Users should be able to say things like:
 
