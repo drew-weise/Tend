@@ -1,10 +1,10 @@
-package com.drewweise.provisions;
+package com.drewweise.tend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ProvisionsBackendApplicationTests {
+class tendBackendApplicationTests {
 
 	@Test
 	void contextLoads() {

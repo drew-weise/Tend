@@ -1,4 +1,4 @@
-package com.drewweise.provisions.config;
+package com.drewweise.tend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

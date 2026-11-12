@@ -1,7 +1,7 @@
-package com.drewweise.provisions.user.controller;
+package com.drewweise.tend.user.controller;
 
-import com.drewweise.provisions.user.model.User;
-import com.drewweise.provisions.user.repository.UserRepository;
+import com.drewweise.tend.user.model.User;
+import com.drewweise.tend.user.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;

@@ -1,12 +1,12 @@
-package com.drewweise.provisions.recipe.model;
+package com.drewweise.tend.recipe.model;
 
-import com.drewweise.provisions.ingredient.Ingredient;
+import com.drewweise.tend.ingredient.Ingredient;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "recipe_ingredient")
 /**
- * Represents a recipe ingredient in Provisions.
+ * Represents a recipe ingredient in tend.
  *
  * @author dweise
  */

@@ -22,7 +22,7 @@ Tend brings those decisions together into one system.
 
 ## Product Vision
 
-Provisions should help users:
+tend should help users:
 
 - Plan breakfast, lunch, dinner, snacks, and custom meal categories on a calendar
 - Track home-cooked meals, recipes, simple foods, leftovers, restaurant meals, takeout, delivery, and grocery-store prepared foods
@@ -40,7 +40,7 @@ Provisions should help users:
 
 ## Food Entries, Not Just Recipes
 
-The core of Provisions is a **food entry**.
+The core of tend is a **food entry**.
 
 A food entry belongs on a date, a time, and a category such as breakfast, lunch, dinner, snack, or a custom category. It can represent:
 
@@ -101,7 +101,7 @@ The chatbot should be able to:
 
 ## Receipt Scanning and Food Capture
 
-Provisions should make it easy to capture food decisions that happen outside the kitchen.
+tend should make it easy to capture food decisions that happen outside the kitchen.
 
 A user should be able to upload a receipt from a grocery store, restaurant, takeout order, or delivery service. The application can use OCR and AI to identify the merchant, date, items, and cost, then propose food, grocery, budget, or meal-history entries.
 
@@ -112,7 +112,7 @@ Receipt or screenshot uploaded
         ↓
 OCR and AI identify merchant, date, items, and prices
         ↓
-Provisions proposes food entries, grocery items, and budget updates
+tend proposes food entries, grocery items, and budget updates
         ↓
 User confirms or corrects unclear information
         ↓

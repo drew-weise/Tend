@@ -1,6 +1,6 @@
-package com.drewweise.provisions.recipe.model;
+package com.drewweise.tend.recipe.model;
 
-import com.drewweise.provisions.user.model.User;
+import com.drewweise.tend.user.model.User;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.List;
 @Entity
 @Table(name = "recipes")
 /**
- * Represents a recipe in Provisions.
+ * Represents a recipe in tend.
  *
  * @author dweise
  */

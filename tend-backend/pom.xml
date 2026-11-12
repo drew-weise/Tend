@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.drewweise</groupId>
-	<artifactId>provisions-backend</artifactId>
+	<artifactId>tend-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Provisions Backend</name>
-	<description>Backend for the Provisions personal food-planning system.</description>
+	<name>Tend Backend</name>
+	<description>Backend for the tend personal food-planning system.</description>
 	<url/>
 	<licenses>
 		<license/>

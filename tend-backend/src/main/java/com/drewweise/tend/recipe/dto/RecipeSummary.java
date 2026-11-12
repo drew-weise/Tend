@@ -1,4 +1,4 @@
-package com.drewweise.provisions.recipe.dto;
+package com.drewweise.tend.recipe.dto;
 
 public record RecipeSummary(
         int recipeId,

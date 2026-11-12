@@ -1,4 +1,4 @@
-# Provisions User Stories
+# tend User Stories
 
 ## Phase 1: Personal Food Planning Foundation
 
@@ -44,7 +44,7 @@
 
 ### Preferences and Constraints
 
-- As a user, I want to save dietary restrictions and allergies so that Provisions does not recommend food that is unsafe for me.
+- As a user, I want to save dietary restrictions and allergies so that tend does not recommend food that is unsafe for me.
 
 - As a user, I want to record ingredients I dislike or avoid so that recommendations better reflect my preferences.
 
@@ -78,7 +78,7 @@
 
 - As a user, I want to see the difference between planned meals and completed meals so that I can make more realistic plans in the future.
 
-- As a user, I want to add notes or ratings to a meal so that Provisions can learn whether I enjoyed it or would choose it again.
+- As a user, I want to add notes or ratings to a meal so that tend can learn whether I enjoyed it or would choose it again.
 
 - As a user, I want to log leftovers so that I can remember to use food I already have.
 
@@ -106,7 +106,7 @@
 
 - As a user, I want to upload a receipt or order screenshot so that I do not need to manually type every food purchase.
 
-- As a user, I want Provisions to identify the merchant, date, items, and prices from a receipt so that it can propose grocery, budget, and food-history entries.
+- As a user, I want tend to identify the merchant, date, items, and prices from a receipt so that it can propose grocery, budget, and food-history entries.
 
 - As a user, I want to confirm or correct receipt-scanned information before it is saved so that OCR mistakes do not corrupt my food history or budget.
 
@@ -134,15 +134,15 @@
 
 - As a user, I want suggestions that avoid repeating meals too often so that my meal plan has variety.
 
-- As a user, I want Provisions to suggest ways to use groceries I already purchased so that food is less likely to go to waste.
+- As a user, I want tend to suggest ways to use groceries I already purchased so that food is less likely to go to waste.
 
 - As a user, I want the app to explain why it recommended a meal so that I can decide whether the recommendation makes sense.
 
 ### Preference Learning and User Control
 
-- As a user, I want to tell Provisions when I liked, disliked, skipped, or modified a meal so that future suggestions improve.
+- As a user, I want to tell tend when I liked, disliked, skipped, or modified a meal so that future suggestions improve.
 
-- As a user, I want to see the preferences Provisions has learned about me so that I can correct wrong assumptions.
+- As a user, I want to see the preferences tend has learned about me so that I can correct wrong assumptions.
 
 - As a user, I want to remove preferences, food history, or recommendation data so that I control what the application remembers.
 

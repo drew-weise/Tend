@@ -1,6 +1,6 @@
-package com.drewweise.provisions.recipe.repository;
+package com.drewweise.tend.recipe.repository;
 
-import com.drewweise.provisions.recipe.model.Recipe;
+import com.drewweise.tend.recipe.model.Recipe;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RecipeRepository extends JpaRepository<Recipe, Integer> {

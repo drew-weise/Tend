@@ -1,11 +1,11 @@
-package com.drewweise.provisions.user.model;
+package com.drewweise.tend.user.model;
 
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")
 /**
- * Represents a user account in Provisions.
+ * Represents a user account in tend.
  * @author dweise
  */
 public class User {

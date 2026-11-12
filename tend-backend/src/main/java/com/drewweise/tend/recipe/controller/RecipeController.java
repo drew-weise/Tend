@@ -1,7 +1,7 @@
-package com.drewweise.provisions.recipe.controller;
+package com.drewweise.tend.recipe.controller;
 
-import com.drewweise.provisions.recipe.dto.RecipeSummary;
-import com.drewweise.provisions.recipe.repository.RecipeRepository;
+import com.drewweise.tend.recipe.dto.RecipeSummary;
+import com.drewweise.tend.recipe.repository.RecipeRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

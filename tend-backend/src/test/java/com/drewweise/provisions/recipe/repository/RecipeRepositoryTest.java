@@ -1,4 +1,4 @@
-package com.drewweise.provisions.recipe.repository;
+package com.drewweise.tend.recipe.repository;
 
 import org.junit.jupiter.api.Test;
 
