@@ -1,6 +1,6 @@
-# Provisions
+# Tend
 
-Provisions is a personal food-life planning system.
+Tend is an adaptable personal food-life planning system.
 
 It helps people plan, track, and make decisions about everything they eat: home-cooked meals, simple foods, snacks, leftovers, restaurant meals, takeout, groceries, and meals they have not decided on yet.
 
