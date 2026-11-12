@@ -1,28 +1,29 @@
+
 package com.drewweise.tend.user.controller;
 
 import com.drewweise.tend.user.model.User;
-import com.drewweise.tend.user.repository.UserRepository;
-import org.springframework.http.HttpStatus;
+import com.drewweise.tend.user.service.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
 @RestController
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository) {this.userRepository = userRepository;}
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping("/api/users/me")
-    public Map<String, Object> currentUser(@AuthenticationPrincipal Jwt jwt) {
-
-        User user = userRepository.findByCognitoUserId(jwt.getSubject())
-                .orElseGet(() -> userRepository.save(new User(jwt.getSubject())));
+    public Map<String, Object> currentUser(
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        User user = userService.getOrCreateUser(jwt.getSubject());
 
         return Map.of(
                 "userId", user.getUserId(),
