@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { AuthProvider } from 'react-oidc-context'
 import { UserProvider } from './contexts/UserProvider'
 import './index.css'
-import App from './App.tsx'
+import App from './app/App.tsx'
 
 const cognitoAuthConfig = {
     authority: 'https://cognito-idp.us-east-2.amazonaws.com/us-east-2_rCmUkdvgz',

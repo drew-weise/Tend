@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { useAuth } from 'react-oidc-context'
-import { useUser } from '../hooks/useUser'
+import { useUser } from '../hooks/useUser.ts'
 
 export default function AuthGuard({ children }: { children: ReactNode }) {
     const auth = useAuth()
