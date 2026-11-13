@@ -1,8 +1,7 @@
 
 package com.drewweise.tend.kitchen.model;
 
-import com.drewweise.tend.food.Food;
-import com.drewweise.tend.recipe.model.Recipe;
+import com.drewweise.tend.food.model.Food;
 import com.drewweise.tend.user.model.User;
 import jakarta.persistence.*;
 
@@ -13,10 +12,6 @@ import jakarta.persistence.*;
                 @UniqueConstraint(
                         name = "uk_kitchen_user_food",
                         columnNames = {"user_id", "food_id"}
-                ),
-                @UniqueConstraint(
-                        name = "uk_kitchen_user_recipe",
-                        columnNames = {"user_id", "recipe_id"}
                 )
         }
 )
@@ -32,12 +27,8 @@ public class KitchenItem {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "food_id")
+    @JoinColumn(name = "food_id", nullable = false)
     private Food food;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recipe_id")
-    private Recipe recipe;
 
     // Required by Hibernate
     protected KitchenItem() {
@@ -55,18 +46,6 @@ public class KitchenItem {
         this.food = food;
     }
 
-    // Save a recipe to someone's Kitchen
-    public KitchenItem(User user, Recipe recipe) {
-        if (user == null || recipe == null) {
-            throw new IllegalArgumentException(
-                    "User and recipe cannot be null"
-            );
-        }
-
-        this.user = user;
-        this.recipe = recipe;
-    }
-
     public int getKitchenItemId() {
         return kitchenItemId;
     }
@@ -79,10 +58,6 @@ public class KitchenItem {
         return food;
     }
 
-    public Recipe getRecipe() {
-        return recipe;
-    }
-
     @Override
     public String toString() {
         return "KitchenItem{" +
@@ -91,8 +66,6 @@ public class KitchenItem {
                 (user != null ? user.getUserId() : null) +
                 ", foodId=" +
                 (food != null ? food.getFoodId() : null) +
-                ", recipeId=" +
-                (recipe != null ? recipe.getRecipeId() : null) +
                 '}';
     }
 }

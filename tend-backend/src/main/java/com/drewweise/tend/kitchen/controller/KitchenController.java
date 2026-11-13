@@ -29,9 +29,7 @@ public class KitchenController {
     }
 
     @GetMapping
-    public List<KitchenItemResponse> getKitchen(
-            @AuthenticationPrincipal Jwt jwt
-    ) {
+    public List<KitchenItemResponse> getKitchen(@AuthenticationPrincipal Jwt jwt) {
         User user = userService.getOrCreateUser(jwt.getSubject());
 
         return kitchenService.getKitchenItems(user.getUserId());

@@ -1,101 +1,183 @@
 
 -- ============================================
 -- TEND DATABASE
--- Complete development/testing setup
 -- MySQL 8.0.16+
+-- Unified Food Architecture
 -- ============================================
 
--- ============================================
--- 1. RESET DATABASE
--- ============================================
-
-DROP DATABASE IF EXISTS tend_test;
-
-CREATE DATABASE tend_test
+CREATE DATABASE IF NOT EXISTS tend
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
-USE tend_test;
+USE tend;
 
 
 -- ============================================
--- 2. CREATE TABLES
+-- 1. RESET TABLES (DEVELOPMENT ONLY)
 -- ============================================
 
--- USERS
+DROP TABLE IF EXISTS food_preparation;
+DROP TABLE IF EXISTS food_ingredients;
+DROP TABLE IF EXISTS kitchen_items;
+
+-- Previous architecture
+DROP TABLE IF EXISTS recipe_ingredient;
+DROP TABLE IF EXISTS recipes;
+
+DROP TABLE IF EXISTS foods;
+DROP TABLE IF EXISTS users;
+
+
+-- ============================================
+-- 2. USERS
+-- ============================================
+
 CREATE TABLE users (
                        user_id INT AUTO_INCREMENT PRIMARY KEY,
-
-                       cognito_user_id VARCHAR(255)
-                           NOT NULL UNIQUE
+                       cognito_user_id VARCHAR(255) NOT NULL UNIQUE
 ) ENGINE = InnoDB;
 
 
--- FOODS
+-- ============================================
+-- 3. FOODS
+-- Everything edible is a Food.
+-- ============================================
+
 CREATE TABLE foods (
                        food_id INT AUTO_INCREMENT PRIMARY KEY,
 
-                       name VARCHAR(255) NOT NULL
+                       name VARCHAR(255) NOT NULL,
+                       description TEXT,
+
+    -- NULL means shared/system food
+                       user_id INT NULL,
+
+    -- Optional reference to the food copied
+                       source_food_id INT NULL,
+
+    -- DIRECT = entered nutritional values
+    -- CALCULATED = derived from ingredients
+                       nutrition_source VARCHAR(20) NOT NULL DEFAULT 'DIRECT',
+
+    -- Nutrition per serving for DIRECT foods.
+    -- CALCULATED foods derive these values.
+                       calories DECIMAL(10,2) NULL,
+                       protein DECIMAL(10,2) NULL,
+                       carbs DECIMAL(10,2) NULL,
+                       fat DECIMAL(10,2) NULL,
+
+    -- Number of servings produced by this food
+                       servings DECIMAL(10,2) NOT NULL DEFAULT 1,
+
+    -- Description of one serving
+                       serving_description VARCHAR(100),
+
+                       CONSTRAINT chk_food_nutrition_source
+                           CHECK (nutrition_source IN ('DIRECT', 'CALCULATED')),
+
+                       CONSTRAINT chk_food_servings
+                           CHECK (servings > 0),
+
+                       CONSTRAINT chk_food_nutrition_values
+                           CHECK (
+                               (calories IS NULL OR calories >= 0)
+                                   AND (protein IS NULL OR protein >= 0)
+                                   AND (carbs IS NULL OR carbs >= 0)
+                                   AND (fat IS NULL OR fat >= 0)
+                               ),
+
+                       CONSTRAINT fk_food_user
+                           FOREIGN KEY (user_id)
+                               REFERENCES users(user_id)
+                               ON DELETE RESTRICT,
+
+                       CONSTRAINT fk_food_source
+                           FOREIGN KEY (source_food_id)
+                               REFERENCES foods(food_id)
+                               ON DELETE SET NULL
 ) ENGINE = InnoDB;
 
 
--- RECIPES
-CREATE TABLE recipes (
-                         recipe_id INT AUTO_INCREMENT PRIMARY KEY,
+-- ============================================
+-- 4. FOOD INGREDIENTS
+-- Foods can be composed of other Foods.
+-- ============================================
 
-                         title VARCHAR(255) NOT NULL,
+CREATE TABLE food_ingredients (
+                                  food_ingredient_id INT AUTO_INCREMENT PRIMARY KEY,
 
-                         description TEXT,
+    -- The food being prepared
+                                  parent_food_id INT NOT NULL,
 
-                         instructions TEXT,
+    -- A food used as an ingredient
+                                  ingredient_food_id INT NOT NULL,
 
-                         servings INT NOT NULL DEFAULT 1,
+                                  quantity DECIMAL(10,3) NOT NULL,
+                                  unit VARCHAR(50) NOT NULL,
 
-                         user_id INT NOT NULL,
+                                  CONSTRAINT chk_ingredient_quantity
+                                      CHECK (quantity > 0),
 
-                         CONSTRAINT chk_recipe_servings
-                             CHECK (servings > 0),
+                                  CONSTRAINT chk_ingredient_not_self
+                                      CHECK (parent_food_id <> ingredient_food_id),
 
-                         CONSTRAINT fk_recipe_user
-                             FOREIGN KEY (user_id)
-                                 REFERENCES users(user_id)
-                                 ON DELETE RESTRICT
+                                  CONSTRAINT fk_ingredient_parent
+                                      FOREIGN KEY (parent_food_id)
+                                          REFERENCES foods(food_id)
+                                          ON DELETE CASCADE,
+
+                                  CONSTRAINT fk_ingredient_food
+                                      FOREIGN KEY (ingredient_food_id)
+                                          REFERENCES foods(food_id)
+                                          ON DELETE RESTRICT
 ) ENGINE = InnoDB;
 
 
--- RECIPE INGREDIENTS
-CREATE TABLE recipe_ingredient (
-                                   recipe_ingredient_id INT
-                                       AUTO_INCREMENT PRIMARY KEY,
+-- ============================================
+-- 5. FOOD PREPARATION
+-- Optional preparation information.
+-- ============================================
 
-                                   recipe_id INT NOT NULL,
+CREATE TABLE food_preparation (
+                                  food_id INT PRIMARY KEY,
 
-                                   food_id INT NOT NULL,
+                                  prep_time_minutes INT NULL,
+                                  cook_time_minutes INT NULL,
 
-                                   amount VARCHAR(255) NOT NULL,
+                                  preparation_method VARCHAR(100),
+                                  instructions TEXT,
 
-                                   CONSTRAINT fk_recipe_ingredient_recipe
-                                       FOREIGN KEY (recipe_id)
-                                           REFERENCES recipes(recipe_id)
-                                           ON DELETE CASCADE,
+                                  CONSTRAINT chk_prep_time
+                                      CHECK (
+                                          prep_time_minutes IS NULL
+                                              OR prep_time_minutes >= 0
+                                          ),
 
-                                   CONSTRAINT fk_recipe_ingredient_food
-                                       FOREIGN KEY (food_id)
-                                           REFERENCES foods(food_id)
-                                           ON DELETE RESTRICT
+                                  CONSTRAINT chk_cook_time
+                                      CHECK (
+                                          cook_time_minutes IS NULL
+                                              OR cook_time_minutes >= 0
+                                          ),
+
+                                  CONSTRAINT fk_preparation_food
+                                      FOREIGN KEY (food_id)
+                                          REFERENCES foods(food_id)
+                                          ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 
--- KITCHEN ITEMS
+-- ============================================
+-- 6. KITCHEN ITEMS
+-- Users save Foods to their Kitchens.
+-- ============================================
+
 CREATE TABLE kitchen_items (
-                               kitchen_item_id INT
-                                   AUTO_INCREMENT PRIMARY KEY,
+                               kitchen_item_id INT AUTO_INCREMENT PRIMARY KEY,
 
                                user_id INT NOT NULL,
+                               food_id INT NOT NULL,
 
-                               food_id INT NULL,
-
-                               recipe_id INT NULL,
+                               saved_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                                CONSTRAINT fk_kitchen_user
                                    FOREIGN KEY (user_id)
@@ -107,139 +189,233 @@ CREATE TABLE kitchen_items (
                                        REFERENCES foods(food_id)
                                        ON DELETE RESTRICT,
 
-                               CONSTRAINT fk_kitchen_recipe
-                                   FOREIGN KEY (recipe_id)
-                                       REFERENCES recipes(recipe_id)
-                                       ON DELETE CASCADE,
-
-                               CONSTRAINT chk_kitchen_item_type
-                                   CHECK (
-                                       (food_id IS NOT NULL AND recipe_id IS NULL)
-                                           OR
-                                       (food_id IS NULL AND recipe_id IS NOT NULL)
-                                       ),
-
                                CONSTRAINT uk_kitchen_user_food
-                                   UNIQUE (user_id, food_id),
-
-                               CONSTRAINT uk_kitchen_user_recipe
-                                   UNIQUE (user_id, recipe_id)
+                                   UNIQUE (user_id, food_id)
 ) ENGINE = InnoDB;
 
 
 -- ============================================
--- 3. INSERT TEST DATA
+-- 7. SAMPLE USERS
 -- ============================================
 
--- TEST USERS
 INSERT INTO users (user_id, cognito_user_id)
 VALUES
     (1, 'test-user-001'),
     (2, 'test-user-002');
 
 
--- TEST FOODS
-INSERT INTO foods (food_id, name)
-VALUES
-    (1, 'Banana'),
-    (2, 'Egg'),
-    (3, 'Whole Wheat Bread'),
-    (4, 'Greek Yogurt'),
-    (5, 'Frozen Lasagna');
+-- ============================================
+-- 8. SAMPLE FOODS
+-- ============================================
 
-
--- TEST RECIPES
-INSERT INTO recipes (
-    recipe_id,
-    title,
+INSERT INTO foods (
+    food_id,
+    name,
     description,
-    instructions,
+    user_id,
+    nutrition_source,
+    calories,
+    protein,
+    carbs,
+    fat,
     servings,
-    user_id
+    serving_description
 )
 VALUES
     (
-        1,
-        'Eggs and Toast',
-        'A simple breakfast.',
-        'Cook eggs and toast bread.',
-        1,
-        1
+        1, 'Banana', NULL, NULL,
+        'DIRECT', 105, 1.3, 27, 0.4,
+        1, '1 medium banana'
     ),
     (
-        2,
-        'Yogurt Bowl',
-        'A quick breakfast or snack.',
+        2, 'Egg', NULL, NULL,
+        'DIRECT', 72, 6.3, 0.4, 4.8,
+        1, '1 large egg'
+    ),
+    (
+        3, 'Whole Wheat Bread', NULL, NULL,
+        'DIRECT', 80, 4, 14, 1,
+        1, '1 slice'
+    ),
+    (
+        4, 'Greek Yogurt', NULL, NULL,
+        'DIRECT', 100, 17, 6, 0,
+        1, '170 g'
+    ),
+    (
+        5, 'Frozen Lasagna',
+        'A convenient frozen meal.',
         NULL,
+        'DIRECT', 420, 22, 48, 16,
+        1, '1 package'
+    ),
+    (
+        6, 'Eggs and Toast',
+        'A simple homemade breakfast.',
         1,
-        2
+        'CALCULATED', NULL, NULL, NULL, NULL,
+        1, '1 plate'
+    ),
+    (
+        7, 'Yogurt Bowl',
+        'A quick breakfast or snack.',
+        2,
+        'CALCULATED', NULL, NULL, NULL, NULL,
+        1, '1 bowl'
     );
 
 
--- TEST RECIPE INGREDIENTS
-INSERT INTO recipe_ingredient (
-    recipe_id,
-    food_id,
-    amount
+-- ============================================
+-- 9. SAMPLE FOOD INGREDIENTS
+-- ============================================
+
+INSERT INTO food_ingredients (
+    parent_food_id,
+    ingredient_food_id,
+    quantity,
+    unit
 )
 VALUES
-    (1, 2, '2 eggs'),
-    (1, 3, '2 slices'),
-    (2, 4, '1 cup'),
-    (2, 1, '1 banana');
+    -- Eggs and Toast
+    (6, 2, 2, 'egg'),
+    (6, 3, 2, 'slice'),
 
-
--- TEST KITCHEN ITEMS
-INSERT INTO kitchen_items (
-    user_id,
-    food_id,
-    recipe_id
-)
-VALUES
-    (1, NULL, 1),
-    (1, 1, NULL),
-    (1, 5, NULL),
-    (2, NULL, 1),
-    (2, NULL, 2);
+    -- Yogurt Bowl
+    (7, 4, 170, 'g'),
+    (7, 1, 1, 'banana');
 
 
 -- ============================================
--- 4. VERIFY DATABASE
+-- 10. SAMPLE FOOD PREPARATION
+-- ============================================
+
+INSERT INTO food_preparation (
+    food_id,
+    prep_time_minutes,
+    cook_time_minutes,
+    preparation_method,
+    instructions
+)
+VALUES
+    (
+        5, 0, 4, 'MICROWAVE',
+        'Microwave according to package instructions.'
+    ),
+    (
+        6, 2, 8, 'STOVETOP',
+        'Cook the eggs and toast the bread.'
+    ),
+    (
+        7, 5, 0, 'NO_COOK',
+        'Combine the yogurt and sliced banana.'
+    );
+
+
+-- ============================================
+-- 11. SAMPLE KITCHEN ITEMS
+-- ============================================
+
+INSERT INTO kitchen_items (
+    kitchen_item_id,
+    user_id,
+    food_id
+)
+VALUES
+    (1, 1, 6),
+    (2, 1, 1),
+    (3, 1, 5),
+    (4, 2, 6),
+    (5, 2, 7);
+
+
+-- ============================================
+-- 12. VERIFY DATABASE
 -- ============================================
 
 SHOW TABLES;
 
 SELECT * FROM users;
 SELECT * FROM foods;
-SELECT * FROM recipes;
-SELECT * FROM recipe_ingredient;
+SELECT * FROM food_ingredients;
+SELECT * FROM food_preparation;
 SELECT * FROM kitchen_items;
 
 
 -- ============================================
--- 5. VERIFY KITCHEN CONTENTS
+-- 13. VIEW KITCHEN COLLECTIONS
 -- ============================================
 
 SELECT
     ki.kitchen_item_id,
     u.cognito_user_id,
-    CASE
-        WHEN ki.food_id IS NOT NULL THEN 'Food'
-        ELSE 'Recipe'
-        END AS item_type,
-    COALESCE(f.name, r.title) AS item_name
+    f.food_id,
+    f.name,
+    f.nutrition_source,
+    f.calories,
+    f.protein,
+    f.carbs,
+    f.fat,
+    f.serving_description,
+    ki.saved_at
 
 FROM kitchen_items ki
 
          JOIN users u
               ON ki.user_id = u.user_id
 
-         LEFT JOIN foods f
-                   ON ki.food_id = f.food_id
-
-         LEFT JOIN recipes r
-                   ON ki.recipe_id = r.recipe_id
+         JOIN foods f
+              ON ki.food_id = f.food_id
 
 ORDER BY
     u.user_id,
     ki.kitchen_item_id;
+
+
+-- ============================================
+-- 14. VIEW FOOD COMPOSITION
+-- ============================================
+
+SELECT
+    parent.name AS food_name,
+    ingredient.name AS ingredient_name,
+    fi.quantity,
+    fi.unit
+
+FROM food_ingredients fi
+
+         JOIN foods parent
+              ON fi.parent_food_id = parent.food_id
+
+         JOIN foods ingredient
+              ON fi.ingredient_food_id = ingredient.food_id
+
+ORDER BY
+    parent.food_id,
+    fi.food_ingredient_id;
+
+
+-- ============================================
+-- 15. FIND QUICK FOODS
+-- ============================================
+
+SELECT
+    f.food_id,
+    f.name,
+    fp.preparation_method,
+    (
+        COALESCE(fp.prep_time_minutes, 0)
+            + COALESCE(fp.cook_time_minutes, 0)
+        ) AS total_minutes
+
+FROM foods f
+
+         JOIN food_preparation fp
+              ON f.food_id = fp.food_id
+
+WHERE
+    (
+        COALESCE(fp.prep_time_minutes, 0)
+            + COALESCE(fp.cook_time_minutes, 0)
+        ) <= 10
+
+ORDER BY total_minutes;

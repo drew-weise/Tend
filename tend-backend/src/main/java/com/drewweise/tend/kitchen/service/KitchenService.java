@@ -20,7 +20,6 @@ public class KitchenService {
 
     @Transactional(readOnly = true)
     public List<KitchenItemResponse> getKitchenItems(int userId) {
-
         return kitchenItemRepository.findByUser_UserId(userId)
                 .stream()
                 .map(this::toResponse)
@@ -28,21 +27,10 @@ public class KitchenService {
     }
 
     private KitchenItemResponse toResponse(KitchenItem item) {
-
-        if (item.getFood() != null) {
-            return new KitchenItemResponse(
-                    item.getKitchenItemId(),
-                    "FOOD",
-                    item.getFood().getFoodId(),
-                    item.getFood().getName()
-            );
-        }
-
         return new KitchenItemResponse(
                 item.getKitchenItemId(),
-                "RECIPE",
-                item.getRecipe().getRecipeId(),
-                item.getRecipe().getRecipeTitle()
+                item.getFood().getFoodId(),
+                item.getFood().getName()
         );
     }
 }
