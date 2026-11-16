@@ -18,6 +18,7 @@ USE tend;
 
 DROP TABLE IF EXISTS food_preparation;
 DROP TABLE IF EXISTS food_ingredients;
+DROP TABLE IF EXISTS nutrition;
 DROP TABLE IF EXISTS kitchen_items;
 
 -- Previous architecture
@@ -34,6 +35,7 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
                        user_id INT AUTO_INCREMENT PRIMARY KEY,
+
                        cognito_user_id VARCHAR(255) NOT NULL UNIQUE
 ) ENGINE = InnoDB;
 
@@ -55,36 +57,14 @@ CREATE TABLE foods (
     -- Optional reference to the food copied
                        source_food_id INT NULL,
 
-    -- DIRECT = entered nutritional values
-    -- CALCULATED = derived from ingredients
-                       nutrition_source VARCHAR(20) NOT NULL DEFAULT 'DIRECT',
-
-    -- Nutrition per serving for DIRECT foods.
-    -- CALCULATED foods derive these values.
-                       calories DECIMAL(10,2) NULL,
-                       protein DECIMAL(10,2) NULL,
-                       carbs DECIMAL(10,2) NULL,
-                       fat DECIMAL(10,2) NULL,
-
-    -- Number of servings produced by this food
+    -- Number of servings produced
                        servings DECIMAL(10,2) NOT NULL DEFAULT 1,
 
     -- Description of one serving
                        serving_description VARCHAR(100),
 
-                       CONSTRAINT chk_food_nutrition_source
-                           CHECK (nutrition_source IN ('DIRECT', 'CALCULATED')),
-
                        CONSTRAINT chk_food_servings
                            CHECK (servings > 0),
-
-                       CONSTRAINT chk_food_nutrition_values
-                           CHECK (
-                               (calories IS NULL OR calories >= 0)
-                                   AND (protein IS NULL OR protein >= 0)
-                                   AND (carbs IS NULL OR carbs >= 0)
-                                   AND (fat IS NULL OR fat >= 0)
-                               ),
 
                        CONSTRAINT fk_food_user
                            FOREIGN KEY (user_id)
@@ -99,7 +79,52 @@ CREATE TABLE foods (
 
 
 -- ============================================
--- 4. FOOD INGREDIENTS
+-- 4. NUTRITION
+-- Nutritional information for a Food.
+-- ============================================
+
+CREATE TABLE nutrition (
+                           nutrition_id INT AUTO_INCREMENT PRIMARY KEY,
+
+                           food_id INT NOT NULL UNIQUE,
+
+    -- MANUAL = entered by a user
+    -- REFERENCE = external nutritional database
+    -- CALCULATED = derived from ingredients
+                           source VARCHAR(30) NOT NULL,
+
+    -- Nutritional values per serving
+                           calories DECIMAL(10,2),
+                           protein DECIMAL(10,2),
+                           carbs DECIMAL(10,2),
+                           fat DECIMAL(10,2),
+
+                           CONSTRAINT chk_nutrition_source
+                               CHECK (
+                                   source IN (
+                                              'MANUAL',
+                                              'REFERENCE',
+                                              'CALCULATED'
+                                       )
+                                   ),
+
+                           CONSTRAINT chk_nutrition_values
+                               CHECK (
+                                   (calories IS NULL OR calories >= 0)
+                                       AND (protein IS NULL OR protein >= 0)
+                                       AND (carbs IS NULL OR carbs >= 0)
+                                       AND (fat IS NULL OR fat >= 0)
+                                   ),
+
+                           CONSTRAINT fk_nutrition_food
+                               FOREIGN KEY (food_id)
+                                   REFERENCES foods(food_id)
+                                   ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+
+-- ============================================
+-- 5. FOOD INGREDIENTS
 -- Foods can be composed of other Foods.
 -- ============================================
 
@@ -134,7 +159,7 @@ CREATE TABLE food_ingredients (
 
 
 -- ============================================
--- 5. FOOD PREPARATION
+-- 6. FOOD PREPARATION
 -- Optional preparation information.
 -- ============================================
 
@@ -167,7 +192,7 @@ CREATE TABLE food_preparation (
 
 
 -- ============================================
--- 6. KITCHEN ITEMS
+-- 7. KITCHEN ITEMS
 -- Users save Foods to their Kitchens.
 -- ============================================
 
@@ -177,7 +202,8 @@ CREATE TABLE kitchen_items (
                                user_id INT NOT NULL,
                                food_id INT NOT NULL,
 
-                               saved_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                               saved_at TIMESTAMP NOT NULL
+                                   DEFAULT CURRENT_TIMESTAMP,
 
                                CONSTRAINT fk_kitchen_user
                                    FOREIGN KEY (user_id)
@@ -195,7 +221,7 @@ CREATE TABLE kitchen_items (
 
 
 -- ============================================
--- 7. SAMPLE USERS
+-- 8. SAMPLE USERS
 -- ============================================
 
 INSERT INTO users (user_id, cognito_user_id)
@@ -205,7 +231,7 @@ VALUES
 
 
 -- ============================================
--- 8. SAMPLE FOODS
+-- 9. SAMPLE FOODS
 -- ============================================
 
 INSERT INTO foods (
@@ -213,60 +239,113 @@ INSERT INTO foods (
     name,
     description,
     user_id,
-    nutrition_source,
-    calories,
-    protein,
-    carbs,
-    fat,
     servings,
     serving_description
 )
 VALUES
     (
-        1, 'Banana', NULL, NULL,
-        'DIRECT', 105, 1.3, 27, 0.4,
-        1, '1 medium banana'
+        1,
+        'Banana',
+        NULL,
+        NULL,
+        1,
+        '1 medium banana'
     ),
     (
-        2, 'Egg', NULL, NULL,
-        'DIRECT', 72, 6.3, 0.4, 4.8,
-        1, '1 large egg'
+        2,
+        'Egg',
+        NULL,
+        NULL,
+        1,
+        '1 large egg'
     ),
     (
-        3, 'Whole Wheat Bread', NULL, NULL,
-        'DIRECT', 80, 4, 14, 1,
-        1, '1 slice'
+        3,
+        'Whole Wheat Bread',
+        NULL,
+        NULL,
+        1,
+        '1 slice'
     ),
     (
-        4, 'Greek Yogurt', NULL, NULL,
-        'DIRECT', 100, 17, 6, 0,
-        1, '170 g'
+        4,
+        'Greek Yogurt',
+        NULL,
+        NULL,
+        1,
+        '170 g'
     ),
     (
-        5, 'Frozen Lasagna',
+        5,
+        'Frozen Lasagna',
         'A convenient frozen meal.',
         NULL,
-        'DIRECT', 420, 22, 48, 16,
-        1, '1 package'
+        1,
+        '1 package'
     ),
     (
-        6, 'Eggs and Toast',
+        6,
+        'Eggs and Toast',
         'A simple homemade breakfast.',
         1,
-        'CALCULATED', NULL, NULL, NULL, NULL,
-        1, '1 plate'
+        1,
+        '1 plate'
     ),
     (
-        7, 'Yogurt Bowl',
+        7,
+        'Yogurt Bowl',
         'A quick breakfast or snack.',
         2,
-        'CALCULATED', NULL, NULL, NULL, NULL,
-        1, '1 bowl'
+        1,
+        '1 bowl'
     );
 
 
 -- ============================================
--- 9. SAMPLE FOOD INGREDIENTS
+-- 10. SAMPLE NUTRITION
+-- ============================================
+
+INSERT INTO nutrition (
+    food_id,
+    source,
+    calories,
+    protein,
+    carbs,
+    fat
+)
+VALUES
+    (
+        1, 'REFERENCE',
+        105, 1.3, 27, 0.4
+    ),
+    (
+        2, 'REFERENCE',
+        72, 6.3, 0.4, 4.8
+    ),
+    (
+        3, 'REFERENCE',
+        80, 4, 14, 1
+    ),
+    (
+        4, 'REFERENCE',
+        100, 17, 6, 0
+    ),
+    (
+        5, 'MANUAL',
+        420, 22, 48, 16
+    ),
+    (
+        6, 'CALCULATED',
+        NULL, NULL, NULL, NULL
+    ),
+    (
+        7, 'CALCULATED',
+        NULL, NULL, NULL, NULL
+    );
+
+
+-- ============================================
+-- 11. SAMPLE FOOD INGREDIENTS
 -- ============================================
 
 INSERT INTO food_ingredients (
@@ -286,7 +365,7 @@ VALUES
 
 
 -- ============================================
--- 10. SAMPLE FOOD PREPARATION
+-- 12. SAMPLE FOOD PREPARATION
 -- ============================================
 
 INSERT INTO food_preparation (
@@ -298,21 +377,30 @@ INSERT INTO food_preparation (
 )
 VALUES
     (
-        5, 0, 4, 'MICROWAVE',
+        5,
+        0,
+        4,
+        'MICROWAVE',
         'Microwave according to package instructions.'
     ),
     (
-        6, 2, 8, 'STOVETOP',
+        6,
+        2,
+        8,
+        'STOVETOP',
         'Cook the eggs and toast the bread.'
     ),
     (
-        7, 5, 0, 'NO_COOK',
+        7,
+        5,
+        0,
+        'NO_COOK',
         'Combine the yogurt and sliced banana.'
     );
 
 
 -- ============================================
--- 11. SAMPLE KITCHEN ITEMS
+-- 13. SAMPLE KITCHEN ITEMS
 -- ============================================
 
 INSERT INTO kitchen_items (
@@ -329,20 +417,21 @@ VALUES
 
 
 -- ============================================
--- 12. VERIFY DATABASE
+-- 14. VERIFY DATABASE
 -- ============================================
 
 SHOW TABLES;
 
 SELECT * FROM users;
 SELECT * FROM foods;
+SELECT * FROM nutrition;
 SELECT * FROM food_ingredients;
 SELECT * FROM food_preparation;
 SELECT * FROM kitchen_items;
 
 
 -- ============================================
--- 13. VIEW KITCHEN COLLECTIONS
+-- 15. VIEW KITCHEN COLLECTIONS
 -- ============================================
 
 SELECT
@@ -350,11 +439,11 @@ SELECT
     u.cognito_user_id,
     f.food_id,
     f.name,
-    f.nutrition_source,
-    f.calories,
-    f.protein,
-    f.carbs,
-    f.fat,
+    n.source AS nutrition_source,
+    n.calories,
+    n.protein,
+    n.carbs,
+    n.fat,
     f.serving_description,
     ki.saved_at
 
@@ -366,13 +455,16 @@ FROM kitchen_items ki
          JOIN foods f
               ON ki.food_id = f.food_id
 
+         LEFT JOIN nutrition n
+                   ON f.food_id = n.food_id
+
 ORDER BY
     u.user_id,
     ki.kitchen_item_id;
 
 
 -- ============================================
--- 14. VIEW FOOD COMPOSITION
+-- 16. VIEW FOOD COMPOSITION
 -- ============================================
 
 SELECT
@@ -395,7 +487,7 @@ ORDER BY
 
 
 -- ============================================
--- 15. FIND QUICK FOODS
+-- 17. FIND QUICK FOODS
 -- ============================================
 
 SELECT
