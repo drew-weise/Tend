@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { useApi } from '../../../hooks/useApi.ts'
+
+import { useEffect, useState } from 'react'
+import { useApi } from '../../../hooks/useApi'
 
 type UsdaFoodSearchResult = {
     fdcId: string
@@ -9,50 +10,110 @@ type UsdaFoodSearchResult = {
 
 export default function UsdaSearchTest() {
     const { apiFetch } = useApi()
-    const [foods, setFoods] = useState<UsdaFoodSearchResult[]>([])
-    const [error, setError] = useState<string | null>(null)
-    const [loading, setLoading] = useState(false)
 
-    async function searchFoods() {
+    const [query, setQuery] = useState('')
+    const [foods, setFoods] = useState<UsdaFoodSearchResult[]>([])
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        const searchTerm = query.trim()
+
+        if (searchTerm.length < 2) {
+            setFoods([])
+            setLoading(false)
+            setError(null)
+            return
+        }
+
+        const controller = new AbortController()
+
+        // Clear previous results while waiting for the new search.
+        setFoods([])
         setLoading(true)
         setError(null)
 
-        try {
-            const response = await apiFetch(
-                '/api/foods/search?q=chicken'
-            )
+        // Wait briefly so we don't query MySQL on every keystroke.
+        const timeout = setTimeout(async () => {
+            try {
+                const response = await apiFetch(
+                    `/api/foods/search?q=${encodeURIComponent(searchTerm)}`,
+                    { signal: controller.signal }
+                )
 
-            if (!response.ok) {
-                throw new Error(`Search failed: ${response.status}`)
+                if (!response.ok) {
+                    throw new Error(`Search failed: ${response.status}`)
+                }
+
+                const data: UsdaFoodSearchResult[] =
+                    await response.json()
+
+                if (!controller.signal.aborted) {
+                    setFoods(data)
+                }
+            } catch (err) {
+                if (controller.signal.aborted) return
+
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : 'Search failed'
+                )
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoading(false)
+                }
             }
+        }, 100)
 
-            const data: UsdaFoodSearchResult[] = await response.json()
-            setFoods(data)
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Search failed')
-        } finally {
-            setLoading(false)
+        // Cancel outdated searches when the user types again.
+        return () => {
+            clearTimeout(timeout)
+            controller.abort()
         }
-    }
+    }, [query, apiFetch])
 
     return (
         <div className="my-8 rounded-2xl border border-primary/20 p-6">
-            <button
-                onClick={searchFoods}
-                disabled={loading}
-                className="rounded-lg bg-primary px-4 py-2 text-white"
-            >
-                {loading ? 'Searching...' : 'Test USDA Search'}
-            </button>
+            <input
+                type="search"
+                value={query}
+                onChange={event => setQuery(event.target.value)}
+                placeholder="Search foods..."
+                className="w-full rounded-lg border border-primary/20 bg-white/50 px-4 py-3 text-ink outline-none focus:border-primary"
+            />
 
-            {error && (
-                <p className="mt-4 text-red-600">{error}</p>
+            {loading && (
+                <p className="mt-4 text-sm text-primary">
+                    Searching...
+                </p>
             )}
 
-            <ul className="mt-4 space-y-2">
+            {error && (
+                <p className="mt-4 text-sm text-red-600">
+                    {error}
+                </p>
+            )}
+
+            {!loading && !error && query.trim().length >= 2
+                && foods.length === 0 && (
+                    <p className="mt-4 text-sm text-primary">
+                        No foods found.
+                    </p>
+                )}
+
+            <ul className="mt-4 space-y-3">
                 {foods.map(food => (
-                    <li key={food.fdcId} className="text-sm text-ink">
-                        {food.description} ({food.dataType})
+                    <li
+                        key={food.fdcId}
+                        className="border-b border-primary/10 pb-3 last:border-0"
+                    >
+                        <p className="text-sm text-ink">
+                            {food.description}
+                        </p>
+                        <p className="mt-1 text-xs text-primary">
+                            {food.dataType}
+                        </p>
                     </li>
                 ))}
             </ul>

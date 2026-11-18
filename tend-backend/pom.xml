@@ -111,6 +111,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Lombok: Reduces boilerplate code by automatically generating getters, setters, constructors, and other utility methods at compile time. -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+
 	</dependencies>
 
 	<!-- Maven build configuration. -->

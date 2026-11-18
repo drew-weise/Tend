@@ -26,7 +26,15 @@ public class UsdaFoodRepository {
                   'survey_fndds_food',
                   'branded_food'
               )
-            LIMIT 20
+            ORDER BY
+                CASE data_type
+                    WHEN 'foundation_food' THEN 1
+                    WHEN 'sr_legacy_food' THEN 2
+                    WHEN 'survey_fndds_food' THEN 3
+                    WHEN 'branded_food' THEN 4
+                END,
+                description
+            LIMIT 10
             """;
 
         return jdbcTemplate.query(

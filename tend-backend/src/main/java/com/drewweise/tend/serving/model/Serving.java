@@ -3,78 +3,53 @@ package com.drewweise.tend.serving.model;
 
 import com.drewweise.tend.food.model.Food;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 /**
- * Represents one way of measuring a portion of a Food.
+ * Represents a portion of a food, such as 100 g,
+ * 1 medium banana, or 1 cup of sliced banana.
  *
- * Example: A banana might have multiple serving options:
- * - 1 medium banana (118 g)
- * - 100 grams
- * - 1 cup sliced (150 g)
- *
- * Each Serving belongs to one Food, but a Food
- * can have multiple Serving records.
+ * A food can have multiple serving options.
  */
 @Entity
 @Table(name = "servings")
+@Getter
 public class Serving {
 
-    // Primary key generated automatically by MySQL.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "serving_id")
     private Integer servingId;
 
-    /**
-     * The Food this serving belongs to.
-     *
-     * Many servings can reference the same Food.
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "food_id", nullable = false)
     private Food food;
 
-    /**
-     * Numerical amount represented by this serving.
-     *
-     * Example: 100 for "100 g".
-     */
     @Column(name = "quantity", nullable = false)
     private BigDecimal quantity;
 
-    /**
-     * Unit used to measure the serving.
-     *
-     * Examples: g, ml, cup, slice, whole.
-     */
     @Column(name = "unit", nullable = false)
     private String unit;
 
-    /**
-     * Optional human-readable description.
-     *
-     * Examples:
-     * "Medium banana", "One container", "Large slice".
-     */
+    @Setter
     @Column(name = "description")
     private String description;
 
-    /**
-     * Indicates whether this is the preferred serving
-     * option displayed when a user selects the Food.
-     */
+    @Setter
     @Column(name = "default_serving", nullable = false)
     private boolean defaultServing;
 
-    // Required by JPA/Hibernate.
+    // Weight in grams, used for nutrition calculations.
+    @Setter
+    @Column(name = "gram_weight", precision = 12, scale = 3)
+    private BigDecimal gramWeight;
+
     protected Serving() {
     }
 
-    /**
-     * Creates a serving definition for a Food.
-     */
     public Serving(
             Food food,
             BigDecimal quantity,
@@ -83,9 +58,7 @@ public class Serving {
             boolean defaultServing
     ) {
         if (food == null) {
-            throw new IllegalArgumentException(
-                    "Food cannot be null"
-            );
+            throw new IllegalArgumentException("Food cannot be null");
         }
 
         this.food = food;
@@ -95,37 +68,8 @@ public class Serving {
         this.defaultServing = defaultServing;
     }
 
-    // GETTERS
-
-    public Integer getServingId() {
-        return servingId;
-    }
-
-    public Food getFood() {
-        return food;
-    }
-
-    public BigDecimal getQuantity() {
-        return quantity;
-    }
-
-    public String getUnit() {
-        return unit;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public boolean isDefaultServing() {
-        return defaultServing;
-    }
-
-    // SETTERS
-
     public void setQuantity(BigDecimal quantity) {
-        if (quantity == null ||
-                quantity.compareTo(BigDecimal.ZERO) <= 0) {
+        if (quantity == null || quantity.signum() <= 0) {
             throw new IllegalArgumentException(
                     "Serving quantity must be greater than zero"
             );
@@ -142,13 +86,5 @@ public class Serving {
         }
 
         this.unit = unit;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setDefaultServing(boolean defaultServing) {
-        this.defaultServing = defaultServing;
     }
 }
