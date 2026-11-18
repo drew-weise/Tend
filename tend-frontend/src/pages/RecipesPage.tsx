@@ -16,7 +16,7 @@ type KitchenItem = {
     name: string
 }
 
-export default function KitchenPage() {
+export default function RecipesPage() {
 
     // Gives us the authenticated API request function.
     const { apiFetch } = useApi()
