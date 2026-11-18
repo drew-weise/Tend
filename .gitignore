@@ -23,3 +23,14 @@ dist/
 .vite/
 *.tsbuildinfo
 
+# USDA datasets
+FoodData_Central_csv_*/
+*.csv
+
+# Python-generated files
+__pycache__/
+*.pyc
+
+# Local environment files
+.env
+
