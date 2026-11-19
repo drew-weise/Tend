@@ -1,6 +1,7 @@
 
 package com.drewweise.tend.recipe.controller;
 
+import com.drewweise.tend.recipe.dto.CreateRecipeRequest;
 import com.drewweise.tend.recipe.dto.SavedRecipeResponse;
 import com.drewweise.tend.recipe.service.RecipeService;
 import com.drewweise.tend.user.model.User;
@@ -27,9 +28,6 @@ public class RecipeController {
         this.userService = userService;
     }
 
-    /**
-     * Retrieves all recipes saved by the authenticated user.
-     */
     @GetMapping
     public List<SavedRecipeResponse> getSavedRecipes(
             @AuthenticationPrincipal Jwt jwt
@@ -39,10 +37,20 @@ public class RecipeController {
         return recipeService.getSavedRecipes(user.getUserId());
     }
 
-    /**
-     * Saves an existing recipe to the authenticated
-     * user's personal collection.
-     */
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public SavedRecipeResponse createRecipe(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody CreateRecipeRequest request
+    ) {
+        User user = userService.getOrCreateUser(jwt.getSubject());
+
+        return recipeService.createRecipe(
+                user.getUserId(),
+                request
+        );
+    }
+
     @PostMapping("/{foodId}")
     @ResponseStatus(HttpStatus.CREATED)
     public SavedRecipeResponse addSavedRecipe(
@@ -57,12 +65,6 @@ public class RecipeController {
         );
     }
 
-    /**
-     * Removes a recipe from the authenticated
-     * user's saved collection.
-     *
-     * Does not delete the underlying Food record.
-     */
     @DeleteMapping("/{savedRecipeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeSavedRecipe(

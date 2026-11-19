@@ -1,6 +1,10 @@
 
 import { useState } from 'react'
 import { Plus, Trash2, Check } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useApi } from '../hooks/useApi'
+import { createRecipe } from '../features/recipes/api/createRecipe'
+import IngredientFoodSearch from '../features/recipes/components/IngredientFoodSearch'
 
 export interface RecipeIngredient {
     id: string
@@ -38,6 +42,8 @@ const inputClass =
     'w-full min-w-0 rounded-xl border border-primary/15 bg-white/70 px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-primary/50 focus:border-primary/60'
 
 export default function RecipeEditorPage() {
+    const { apiFetch } = useApi()
+    const navigate = useNavigate()
     const [recipe, setRecipe] = useState<RecipeDraft>(
         createEmptyRecipe
     )
@@ -57,7 +63,7 @@ export default function RecipeEditorPage() {
         (
             recipe.ingredients.length === 0 ||
             recipe.ingredients.some(ingredient =>
-                !ingredient.name.trim() ||
+                !ingredient.foodId ||
                 !ingredient.quantity.trim() ||
                 !Number.isFinite(Number(ingredient.quantity)) ||
                 Number(ingredient.quantity) <= 0 ||
@@ -129,6 +135,7 @@ export default function RecipeEditorPage() {
     }
 
     async function handleSave() {
+        if (saving) return
         setAttemptedSave(true)
         setError('')
 
@@ -145,7 +152,7 @@ export default function RecipeEditorPage() {
         if (
             recipe.ingredients.length === 0 ||
             recipe.ingredients.some(ingredient =>
-                !ingredient.name.trim() ||
+                !ingredient.foodId ||
                 !ingredient.quantity.trim() ||
                 !Number.isFinite(Number(ingredient.quantity)) ||
                 Number(ingredient.quantity) <= 0 ||
@@ -153,7 +160,7 @@ export default function RecipeEditorPage() {
             )
         ) {
             setError(
-                'Add at least one ingredient and complete all ingredient fields.'
+                'Select an existing food for every ingredient and enter a positive quantity and unit.'
             )
             return
         }
@@ -161,24 +168,20 @@ export default function RecipeEditorPage() {
         setSaving(true)
 
         try {
-            const draft: RecipeDraft = {
-                ...recipe,
+            await createRecipe(apiFetch, {
                 name: recipe.name.trim(),
                 description: recipe.description.trim(),
+                servings: recipe.servings,
                 ingredients: recipe.ingredients.map(ingredient => ({
-                    ...ingredient,
-                    name: ingredient.name.trim(),
+                    foodId: ingredient.foodId!,
+                    quantity: Number(ingredient.quantity),
+                    unit: ingredient.unit,
                 })),
-                instructions: recipe.instructions
-                    .map(step => step.trim())
-                    .filter(Boolean),
-            }
-
-            console.log('Recipe ready to save:', draft)
-
-            setError('Recipe creation is not connected to the backend yet.')
-        } catch {
-            setError('Could not prepare the recipe.')
+                instructions: recipe.instructions.map(step => step.trim()).filter(Boolean),
+            })
+            navigate('/recipes')
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Could not save the recipe.')
         } finally {
             setSaving(false)
         }
@@ -310,7 +313,7 @@ export default function RecipeEditorPage() {
                                 const invalid =
                                     attemptedSave &&
                                     (
-                                        !ingredient.name.trim() ||
+                                        !ingredient.foodId ||
                                         !ingredient.quantity.trim() ||
                                         !Number.isFinite(Number(ingredient.quantity)) ||
                                         Number(ingredient.quantity) <= 0 ||
@@ -343,19 +346,17 @@ export default function RecipeEditorPage() {
                                         </div>
 
                                         <div className="space-y-3">
-                                            <input
-                                                value={ingredient.name}
-                                                onChange={event =>
-                                                    updateIngredient(
-                                                        ingredient.id,
-                                                        'name',
-                                                        event.target.value
-                                                    )
-                                                }
-                                                placeholder="Ingredient name"
-                                                aria-label={`Ingredient ${index + 1} name`}
-                                                aria-required="true"
-                                                className={inputClass}
+                                            <IngredientFoodSearch
+                                                name={ingredient.name}
+                                                foodId={ingredient.foodId}
+                                                label={`Ingredient ${index + 1} food search`}
+                                                onQueryChange={query => updateIngredient(ingredient.id, 'name', query)}
+                                                onSelect={food => setRecipe(previous => ({
+                                                    ...previous,
+                                                    ingredients: previous.ingredients.map(item => item.id === ingredient.id
+                                                        ? { ...item, name: food.name, foodId: food.foodId }
+                                                        : item),
+                                                }))}
                                             />
 
                                             <div className="grid grid-cols-2 gap-3">
@@ -410,7 +411,7 @@ export default function RecipeEditorPage() {
 
                                         {invalid && (
                                             <p className="mt-3 text-xs text-red-600">
-                                                Complete all ingredient fields.
+                                                Select a food and complete the quantity and unit.
                                             </p>
                                         )}
                                     </div>
