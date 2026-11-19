@@ -9,7 +9,7 @@ export async function getKitchenItems(
     signal?: AbortSignal
 ): Promise<KitchenItem[]> {
 
-    const response = await apiFetch('/api/kitchen', {
+    const response = await apiFetch('/api/recipe', {
         signal
     })
 

@@ -1,11 +1,11 @@
 
-package com.drewweise.tend.kitchen.service;
+package com.drewweise.tend.recipe.service;
 
 import com.drewweise.tend.food.model.Food;
 import com.drewweise.tend.food.repository.FoodRepository;
-import com.drewweise.tend.kitchen.dto.KitchenItemResponse;
-import com.drewweise.tend.kitchen.model.KitchenItem;
-import com.drewweise.tend.kitchen.repository.KitchenItemRepository;
+import com.drewweise.tend.recipe.dto.SavedRecipeResponse;
+import com.drewweise.tend.recipe.model.SavedRecipe;
+import com.drewweise.tend.recipe.repository.SavedRecipeRepository;
 import com.drewweise.tend.user.model.User;
 import com.drewweise.tend.user.repository.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -16,41 +16,41 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @Service
-public class KitchenService {
+public class RecipeService {
 
-    private final KitchenItemRepository kitchenItemRepository;
+    private final SavedRecipeRepository savedRecipeRepository;
     private final FoodRepository foodRepository;
     private final UserRepository userRepository;
 
-    public KitchenService(
-            KitchenItemRepository kitchenItemRepository,
+    public RecipeService(
+            SavedRecipeRepository savedRecipeRepository,
             FoodRepository foodRepository,
             UserRepository userRepository
     ) {
-        this.kitchenItemRepository = kitchenItemRepository;
+        this.savedRecipeRepository = savedRecipeRepository;
         this.foodRepository = foodRepository;
         this.userRepository = userRepository;
     }
 
     /**
-     * Retrieves all Foods saved to a user's Kitchen.
+     * Retrieves all recipes saved by a user.
      */
     @Transactional(readOnly = true)
-    public List<KitchenItemResponse> getKitchenItems(Integer userId) {
-        return kitchenItemRepository.findByUser_UserId(userId)
+    public List<SavedRecipeResponse> getSavedRecipes(Integer userId) {
+        return savedRecipeRepository.findByUser_UserId(userId)
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     /**
-     * Saves an existing Food to a user's Kitchen.
+     * Saves an existing recipe to a user's collection.
      *
-     * Only shared Foods or Foods owned by the user
+     * Only shared recipes or recipes owned by the user
      * may be saved.
      */
     @Transactional
-    public KitchenItemResponse addKitchenItem(
+    public SavedRecipeResponse addSavedRecipe(
             Integer userId,
             Integer foodId
     ) {
@@ -63,65 +63,64 @@ public class KitchenService {
         Food food = foodRepository.findById(foodId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Food not found"
+                        "Recipe not found"
                 ));
 
-        // A user cannot save another user's private Food.
+        // Prevent users from saving another user's private recipe.
         if (food.getUser() != null &&
-                food.getUser().getUserId() != userId) {
+                !food.getUser().getUserId().equals(userId)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    "Food not found"
+                    "Recipe not found"
             );
         }
 
-        // Prevent duplicate entries.
-        if (kitchenItemRepository
+        // Prevent duplicate saved recipes.
+        if (savedRecipeRepository
                 .existsByUser_UserIdAndFood_FoodId(userId, foodId)) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Food is already saved to Kitchen"
+                    "Recipe is already saved"
             );
         }
 
-        KitchenItem item = new KitchenItem(user, food);
+        SavedRecipe savedRecipe = new SavedRecipe(user, food);
 
-        return toResponse(kitchenItemRepository.save(item));
+        return toResponse(savedRecipeRepository.save(savedRecipe));
     }
 
     /**
-     * Removes a Food from a user's Kitchen.
+     * Removes a recipe from a user's saved collection.
      *
-     * The ownership check is part of the database query,
-     * so users cannot delete another user's KitchenItems.
+     * The underlying Food record is not deleted.
+     * Ownership is enforced through the repository query.
      */
     @Transactional
-    public void removeKitchenItem(
+    public void removeSavedRecipe(
             Integer userId,
-            Integer kitchenItemId
+            Integer savedRecipeId
     ) {
-        KitchenItem item = kitchenItemRepository
-                .findByKitchenItemIdAndUser_UserId(
-                        kitchenItemId,
+        SavedRecipe savedRecipe = savedRecipeRepository
+                .findBySavedRecipeIdAndUser_UserId(
+                        savedRecipeId,
                         userId
                 )
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Kitchen item not found"
+                        "Saved recipe not found"
                 ));
 
-        kitchenItemRepository.delete(item);
+        savedRecipeRepository.delete(savedRecipe);
     }
 
     /**
-     * Converts a KitchenItem entity into the DTO
-     * returned to the frontend.
+     * Converts a SavedRecipe entity into a response DTO.
      */
-    private KitchenItemResponse toResponse(KitchenItem item) {
-        return new KitchenItemResponse(
-                item.getKitchenItemId(),
-                item.getFood().getFoodId(),
-                item.getFood().getName()
+    private SavedRecipeResponse toResponse(SavedRecipe savedRecipe) {
+        return new SavedRecipeResponse(
+                savedRecipe.getSavedRecipeId(),
+                savedRecipe.getFood().getFoodId(),
+                savedRecipe.getFood().getName()
         );
     }
 }

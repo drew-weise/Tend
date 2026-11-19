@@ -1,8 +1,8 @@
 
-package com.drewweise.tend.kitchen.controller;
+package com.drewweise.tend.recipe.controller;
 
-import com.drewweise.tend.kitchen.dto.KitchenItemResponse;
-import com.drewweise.tend.kitchen.service.KitchenService;
+import com.drewweise.tend.recipe.dto.SavedRecipeResponse;
+import com.drewweise.tend.recipe.service.RecipeService;
 import com.drewweise.tend.user.model.User;
 import com.drewweise.tend.user.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -13,64 +13,67 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/kitchen")
-public class KitchenController {
+@RequestMapping("/api/recipes")
+public class RecipeController {
 
-    private final KitchenService kitchenService;
+    private final RecipeService recipeService;
     private final UserService userService;
 
-    public KitchenController(
-            KitchenService kitchenService,
+    public RecipeController(
+            RecipeService recipeService,
             UserService userService
     ) {
-        this.kitchenService = kitchenService;
+        this.recipeService = recipeService;
         this.userService = userService;
     }
 
     /**
-     * Retrieves the authenticated user's Kitchen.
+     * Retrieves all recipes saved by the authenticated user.
      */
     @GetMapping
-    public List<KitchenItemResponse> getKitchen(
+    public List<SavedRecipeResponse> getSavedRecipes(
             @AuthenticationPrincipal Jwt jwt
     ) {
         User user = userService.getOrCreateUser(jwt.getSubject());
 
-        return kitchenService.getKitchenItems(user.getUserId());
+        return recipeService.getSavedRecipes(user.getUserId());
     }
 
     /**
-     * Saves an existing Food to the authenticated
-     * user's Kitchen.
+     * Saves an existing recipe to the authenticated
+     * user's personal collection.
      */
     @PostMapping("/{foodId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public KitchenItemResponse addKitchenItem(
+    public SavedRecipeResponse addSavedRecipe(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Integer foodId
     ) {
         User user = userService.getOrCreateUser(jwt.getSubject());
 
-        return kitchenService.addKitchenItem(
+        return recipeService.addSavedRecipe(
                 user.getUserId(),
                 foodId
         );
     }
 
     /**
-     * Removes a saved KitchenItem.
+     * Removes a recipe from the authenticated
+     * user's saved collection.
+     *
+     * Does not delete the underlying Food record.
      */
-    @DeleteMapping("/{kitchenItemId}")
+    @DeleteMapping("/{savedRecipeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeKitchenItem(
+    public void removeSavedRecipe(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable Integer kitchenItemId
+            @PathVariable Integer savedRecipeId
     ) {
         User user = userService.getOrCreateUser(jwt.getSubject());
 
-        kitchenService.removeKitchenItem(
+        recipeService.removeSavedRecipe(
                 user.getUserId(),
-                kitchenItemId
+                savedRecipeId
         );
     }
 }

@@ -1,5 +1,5 @@
 
-package com.drewweise.tend.kitchen.model;
+package com.drewweise.tend.recipe.model;
 
 import com.drewweise.tend.food.model.Food;
 import com.drewweise.tend.user.model.User;
@@ -7,28 +7,28 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 /**
- * Represents a Food saved to a User's Kitchen.
+ * Represents a recipe saved to a user's collection.
  *
- * Multiple users can save the same Food without
- * duplicating its information.
+ * Multiple users can save the same shared recipe
+ * without duplicating its underlying Food record.
  */
 @Entity
 @Table(
-        name = "kitchen_items",
+        name = "saved_recipes",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_kitchen_user_food",
+                        name = "uk_saved_recipe_user_food",
                         columnNames = {"user_id", "food_id"}
                 )
         }
 )
 @Getter
-public class KitchenItem {
+public class SavedRecipe {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "kitchen_item_id")
-    private Integer kitchenItemId;
+    @Column(name = "saved_recipe_id")
+    private Integer savedRecipeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -38,11 +38,10 @@ public class KitchenItem {
     @JoinColumn(name = "food_id", nullable = false)
     private Food food;
 
-    // Required by JPA/Hibernate.
-    protected KitchenItem() {
+    protected SavedRecipe() {
     }
 
-    public KitchenItem(User user, Food food) {
+    public SavedRecipe(User user, Food food) {
         if (user == null || food == null) {
             throw new IllegalArgumentException(
                     "User and Food cannot be null"

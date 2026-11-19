@@ -42,7 +42,7 @@ export default function RecipesPage() {
 
             try {
                 // Request the authenticated user's Kitchen.
-                const response = await apiFetch('/api/kitchen', {
+                const response = await apiFetch('/api/recipe', {
                     signal: controller.signal
                 })
 
