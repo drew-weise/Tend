@@ -15,7 +15,7 @@ type SidebarProps = {
 
 const navigation = [
     { label: 'Chat', path: '/chat', icon: MessageCircle },
-    { label: 'Kitchen', path: '/recipe', icon: BookOpen }
+    { label: 'Recipes', path: '/recipes', icon: BookOpen }
 ]
 
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {

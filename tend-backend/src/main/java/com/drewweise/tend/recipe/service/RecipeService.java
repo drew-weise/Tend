@@ -68,7 +68,7 @@ public class RecipeService {
 
         // Prevent users from saving another user's private recipe.
         if (food.getUser() != null &&
-                !food.getUser().getUserId().equals(userId)) {
+                food.getUser().getUserId() != userId) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     "Recipe not found"

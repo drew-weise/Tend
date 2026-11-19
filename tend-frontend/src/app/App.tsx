@@ -3,6 +3,7 @@ import AuthGuard from './AuthGuard.tsx'
 import AppLayout from './AppLayout.tsx'
 import ChatPage from '../pages/ChatPage.tsx'
 import RecipesPage from '../pages/RecipesPage.tsx'
+import RecipeEditorPage from '../pages/RecipeEditorPage.tsx'
 
 function App() {
     return (
@@ -12,7 +13,8 @@ function App() {
                     <Routes>
                         <Route path="/" element={<Navigate to="/chat" replace />} />
                         <Route path="/chat" element={<ChatPage />} />
-                        <Route path="/kitchen" element={<RecipesPage />} />
+                        <Route path="/recipes" element={<RecipesPage />} />
+                        <Route path="/recipeEditor" element={<RecipeEditorPage />} />
                     </Routes>
                 </AppLayout>
             </AuthGuard>
