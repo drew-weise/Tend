@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "nutrition")
 @Getter
-public class Nutrition {
+public class Nutrient {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,10 +52,10 @@ public class Nutrition {
     private BigDecimal fat;
 
     // Required by JPA/Hibernate.
-    protected Nutrition() {
+    protected Nutrient() {
     }
 
-    public Nutrition(
+    public Nutrient(
             Food food,
             Serving referenceServing,
             NutritionSource source

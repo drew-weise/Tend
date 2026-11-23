@@ -23,7 +23,7 @@ import lombok.Getter;
         }
 )
 @Getter
-public class SavedRecipe {
+public class Recipe {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,10 +38,10 @@ public class SavedRecipe {
     @JoinColumn(name = "food_id", nullable = false)
     private Food food;
 
-    protected SavedRecipe() {
+    protected Recipe() {
     }
 
-    public SavedRecipe(User user, Food food) {
+    public Recipe(User user, Food food) {
         if (user == null || food == null) {
             throw new IllegalArgumentException(
                     "User and Food cannot be null"

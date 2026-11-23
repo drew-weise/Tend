@@ -1,7 +1,7 @@
 
 package com.drewweise.tend.recipe.dto;
 
-public record SavedRecipeResponse(
+public record RecipeResponse(
         int id,
         int foodId,
         String name

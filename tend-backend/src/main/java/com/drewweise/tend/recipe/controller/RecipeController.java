@@ -1,8 +1,8 @@
 
 package com.drewweise.tend.recipe.controller;
 
-import com.drewweise.tend.recipe.dto.CreateRecipeRequest;
-import com.drewweise.tend.recipe.dto.SavedRecipeResponse;
+import com.drewweise.tend.recipe.dto.RecipeRequest;
+import com.drewweise.tend.recipe.dto.RecipeResponse;
 import com.drewweise.tend.recipe.service.RecipeService;
 import com.drewweise.tend.user.model.User;
 import com.drewweise.tend.user.service.UserService;
@@ -29,7 +29,7 @@ public class RecipeController {
     }
 
     @GetMapping
-    public List<SavedRecipeResponse> getSavedRecipes(
+    public List<RecipeResponse> getSavedRecipes(
             @AuthenticationPrincipal Jwt jwt
     ) {
         User user = userService.getOrCreateUser(jwt.getSubject());
@@ -39,9 +39,9 @@ public class RecipeController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public SavedRecipeResponse createRecipe(
+    public RecipeResponse createRecipe(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody CreateRecipeRequest request
+            @RequestBody RecipeRequest request
     ) {
         User user = userService.getOrCreateUser(jwt.getSubject());
 
@@ -53,7 +53,7 @@ public class RecipeController {
 
     @PostMapping("/{foodId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public SavedRecipeResponse addSavedRecipe(
+    public RecipeResponse addSavedRecipe(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Integer foodId
     ) {

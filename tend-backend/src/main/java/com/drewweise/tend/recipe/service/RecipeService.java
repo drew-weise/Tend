@@ -7,10 +7,10 @@ import com.drewweise.tend.food.repository.FoodIngredientRepository;
 import com.drewweise.tend.food.repository.FoodRepository;
 import com.drewweise.tend.preparation.model.FoodPreparation;
 import com.drewweise.tend.preparation.repository.FoodPreparationRepository;
-import com.drewweise.tend.recipe.dto.CreateRecipeRequest;
-import com.drewweise.tend.recipe.dto.SavedRecipeResponse;
-import com.drewweise.tend.recipe.model.SavedRecipe;
-import com.drewweise.tend.recipe.repository.SavedRecipeRepository;
+import com.drewweise.tend.recipe.dto.RecipeRequest;
+import com.drewweise.tend.recipe.dto.RecipeResponse;
+import com.drewweise.tend.recipe.model.Recipe;
+import com.drewweise.tend.recipe.repository.RecipeRepository;
 import com.drewweise.tend.user.model.User;
 import com.drewweise.tend.user.repository.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -26,14 +26,14 @@ import java.util.stream.Collectors;
 @Service
 public class RecipeService {
 
-    private final SavedRecipeRepository savedRecipeRepository;
+    private final RecipeRepository savedRecipeRepository;
     private final FoodRepository foodRepository;
     private final FoodIngredientRepository foodIngredientRepository;
     private final FoodPreparationRepository foodPreparationRepository;
     private final UserRepository userRepository;
 
     public RecipeService(
-            SavedRecipeRepository savedRecipeRepository,
+            RecipeRepository savedRecipeRepository,
             FoodRepository foodRepository,
             FoodIngredientRepository foodIngredientRepository,
             FoodPreparationRepository foodPreparationRepository,
@@ -47,7 +47,7 @@ public class RecipeService {
     }
 
     @Transactional(readOnly = true)
-    public List<SavedRecipeResponse> getSavedRecipes(Integer userId) {
+    public List<RecipeResponse> getSavedRecipes(Integer userId) {
         return savedRecipeRepository.findByUser_UserId(userId)
                 .stream()
                 .map(this::toResponse)
@@ -55,9 +55,9 @@ public class RecipeService {
     }
 
     @Transactional
-    public SavedRecipeResponse createRecipe(
+    public RecipeResponse createRecipe(
             Integer userId,
-            CreateRecipeRequest request
+            RecipeRequest request
     ) {
         if (request == null) {
             throw badRequest("Recipe data is required");
@@ -76,7 +76,7 @@ public class RecipeService {
             throw badRequest("At least one ingredient is required");
         }
 
-        for (CreateRecipeRequest.IngredientRequest ingredient
+        for (RecipeRequest.IngredientRequest ingredient
                 : request.ingredients()) {
 
             if (ingredient == null ||
@@ -122,7 +122,7 @@ public class RecipeService {
 
         // Connect the recipe to the selected existing Foods.
         for (int index = 0; index < request.ingredients().size(); index++) {
-            CreateRecipeRequest.IngredientRequest ingredient = request.ingredients().get(index);
+            RecipeRequest.IngredientRequest ingredient = request.ingredients().get(index);
             Food ingredientFood = ingredientFoods.get(index);
 
             FoodIngredient relationship = new FoodIngredient(
@@ -155,7 +155,7 @@ public class RecipeService {
         }
 
         // Automatically add the new recipe to the user's collection.
-        SavedRecipe savedRecipe = new SavedRecipe(user, recipe);
+        Recipe savedRecipe = new Recipe(user, recipe);
 
         return toResponse(
                 savedRecipeRepository.save(savedRecipe)
@@ -163,7 +163,7 @@ public class RecipeService {
     }
 
     @Transactional
-    public SavedRecipeResponse addSavedRecipe(
+    public RecipeResponse addSavedRecipe(
             Integer userId,
             Integer foodId
     ) {
@@ -198,7 +198,7 @@ public class RecipeService {
             );
         }
 
-        SavedRecipe savedRecipe = new SavedRecipe(user, food);
+        Recipe savedRecipe = new Recipe(user, food);
 
         return toResponse(
                 savedRecipeRepository.save(savedRecipe)
@@ -210,7 +210,7 @@ public class RecipeService {
             Integer userId,
             Integer savedRecipeId
     ) {
-        SavedRecipe savedRecipe = savedRecipeRepository
+        Recipe savedRecipe = savedRecipeRepository
                 .findBySavedRecipeIdAndUser_UserId(
                         savedRecipeId,
                         userId
@@ -223,8 +223,8 @@ public class RecipeService {
         savedRecipeRepository.delete(savedRecipe);
     }
 
-    private SavedRecipeResponse toResponse(SavedRecipe savedRecipe) {
-        return new SavedRecipeResponse(
+    private RecipeResponse toResponse(Recipe savedRecipe) {
+        return new RecipeResponse(
                 savedRecipe.getSavedRecipeId(),
                 savedRecipe.getFood().getFoodId(),
                 savedRecipe.getFood().getName()

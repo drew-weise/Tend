@@ -1,7 +1,7 @@
 
 package com.drewweise.tend.nutrition.repository;
 
-import com.drewweise.tend.nutrition.model.Nutrition;
+import com.drewweise.tend.nutrition.model.Nutrient;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -14,8 +14,8 @@ import java.util.Optional;
  *
  * Each Food can have at most one Nutrition record.
  */
-public interface NutritionRepository
-        extends JpaRepository<Nutrition, Integer> {
+public interface NutrientRepository
+        extends JpaRepository<Nutrient, Integer> {
 
     /**
      * Retrieves the nutritional information associated
@@ -27,5 +27,5 @@ public interface NutritionRepository
      * Optional is used because a Food might not
      * have nutritional information yet.
      */
-    Optional<Nutrition> findByFood_FoodId(Integer foodId);
+    Optional<Nutrient> findByFood_FoodId(Integer foodId);
 }

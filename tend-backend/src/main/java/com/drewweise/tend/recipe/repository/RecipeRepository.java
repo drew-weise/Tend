@@ -1,7 +1,7 @@
 
 package com.drewweise.tend.recipe.repository;
 
-import com.drewweise.tend.recipe.model.SavedRecipe;
+import com.drewweise.tend.recipe.model.Recipe;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,8 +12,8 @@ import java.util.Optional;
  * Handles database operations for recipes
  * saved to a user's personal collection.
  */
-public interface SavedRecipeRepository
-        extends JpaRepository<SavedRecipe, Integer> {
+public interface RecipeRepository
+        extends JpaRepository<Recipe, Integer> {
 
     /**
      * Retrieves all recipes saved by a user.
@@ -23,7 +23,7 @@ public interface SavedRecipeRepository
      * avoiding N+1 queries.
      */
     @EntityGraph(attributePaths = {"food"})
-    List<SavedRecipe> findByUser_UserId(Integer userId);
+    List<Recipe> findByUser_UserId(Integer userId);
 
     /**
      * Checks whether a user has already saved
@@ -40,7 +40,7 @@ public interface SavedRecipeRepository
      * Used to ensure users can only remove
      * recipes from their own collection.
      */
-    Optional<SavedRecipe> findBySavedRecipeIdAndUser_UserId(
+    Optional<Recipe> findBySavedRecipeIdAndUser_UserId(
             Integer savedRecipeId,
             Integer userId
     );

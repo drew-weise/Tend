@@ -3,7 +3,7 @@ package com.drewweise.tend.recipe.dto;
 import java.math.BigDecimal;
 import java.util.List;
 
-public record CreateRecipeRequest(
+public record RecipeRequest(
         String name,
         String description,
         Integer servings,
