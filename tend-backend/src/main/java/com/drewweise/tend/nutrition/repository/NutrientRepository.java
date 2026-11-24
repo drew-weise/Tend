@@ -7,25 +7,25 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 /**
- * Handles database operations for Nutrition entities.
+ * Repository for accessing nutrient definitions.
  *
- * JpaRepository provides standard CRUD operations,
- * including save(), findById(), and deleteById().
+ * Nutrients describe individual nutritional components
+ * such as protein, fat, carbohydrates, and vitamins.
  *
- * Each Food can have at most one Nutrition record.
+ * Nutrient amounts associated with specific foods
+ * are managed through FoodNutrient.
  */
-public interface NutrientRepository
-        extends JpaRepository<Nutrient, Integer> {
+public interface NutrientRepository extends JpaRepository<Nutrient, Integer> {
 
     /**
-     * Retrieves the nutritional information associated
-     * with a specific Food.
-     *
-     * Spring Data JPA navigates the Nutrition.food
-     * relationship and matches the Food's foodId.
-     *
-     * Optional is used because a Food might not
-     * have nutritional information yet.
+     * Finds a nutrient by its name.
      */
-    Optional<Nutrient> findByFood_FoodId(Integer foodId);
+    Optional<Nutrient> findByName(String name);
+
+    /**
+     * Finds a nutrient using its original USDA identifier.
+     *
+     * Useful when importing or synchronizing USDA data.
+     */
+    Optional<Nutrient> findByUsdaNutrientId(Integer usdaNutrientId);
 }

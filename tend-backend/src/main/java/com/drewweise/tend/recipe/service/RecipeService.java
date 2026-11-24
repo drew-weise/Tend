@@ -2,8 +2,9 @@
 package com.drewweise.tend.recipe.service;
 
 import com.drewweise.tend.food.model.Food;
-import com.drewweise.tend.food.model.FoodIngredient;
-import com.drewweise.tend.food.repository.FoodIngredientRepository;
+import com.drewweise.tend.usda.repository.UsdaFoodRepository;
+import com.drewweise.tend.recipe.model.RecipeFood;
+import com.drewweise.tend.recipe.repository.RecipeFoodRepository;
 import com.drewweise.tend.food.repository.FoodRepository;
 import com.drewweise.tend.preparation.model.FoodPreparation;
 import com.drewweise.tend.preparation.repository.FoodPreparationRepository;
@@ -28,22 +29,25 @@ public class RecipeService {
 
     private final RecipeRepository savedRecipeRepository;
     private final FoodRepository foodRepository;
-    private final FoodIngredientRepository foodIngredientRepository;
+    private final RecipeFoodRepository recipeFoodRepository;
     private final FoodPreparationRepository foodPreparationRepository;
     private final UserRepository userRepository;
+    private final UsdaFoodRepository usdaFoodRepository;
 
     public RecipeService(
             RecipeRepository savedRecipeRepository,
             FoodRepository foodRepository,
-            FoodIngredientRepository foodIngredientRepository,
+            RecipeFoodRepository recipeFoodRepository,
             FoodPreparationRepository foodPreparationRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            UsdaFoodRepository usdaFoodRepository
     ) {
         this.savedRecipeRepository = savedRecipeRepository;
         this.foodRepository = foodRepository;
-        this.foodIngredientRepository = foodIngredientRepository;
+        this.recipeFoodRepository = recipeFoodRepository;
         this.foodPreparationRepository = foodPreparationRepository;
         this.userRepository = userRepository;
+        this.usdaFoodRepository = usdaFoodRepository;
     }
 
     @Transactional(readOnly = true)
@@ -80,9 +84,8 @@ public class RecipeService {
                 : request.ingredients()) {
 
             if (ingredient == null ||
-                    ingredient.foodId() == null ||
-                    ingredient.foodId() <= 0) {
-                throw badRequest("Every ingredient needs an existing foodId");
+                    ingredient.usdaFdcId() == null || ingredient.usdaFdcId() <= 0) {
+                throw badRequest("Every ingredient needs a positive usdaFdcId");
             }
 
             if (ingredient.quantity() == null ||
@@ -102,14 +105,13 @@ public class RecipeService {
                         "User not found"
                 ));
 
-        // Resolve every ingredient before writing anything. Never create ingredient Foods.
-        List<Food> ingredientFoods = request.ingredients().stream()
-                .map(ingredient -> foodRepository.findById(ingredient.foodId())
-                        .filter(food -> food.getUser() == null ||
-                                Objects.equals(food.getUser().getUserId(), userId))
-                        .orElseThrow(() -> badRequest(
-                                "Ingredient foodId is invalid or unavailable: " + ingredient.foodId())))
-                .toList();
+        // Verify USDA references before writing anything to Tend. No ingredient Foods are imported.
+        for (Long fdcId : request.ingredients().stream()
+                .map(RecipeRequest.IngredientRequest::usdaFdcId).distinct().toList()) {
+            if (usdaFoodRepository.findByFdcId(fdcId).isEmpty()) {
+                throw badRequest("USDA food was not found: " + fdcId);
+            }
+        }
 
         // Create the recipe itself.
         Food recipe = new Food(request.name().trim(), user);
@@ -120,19 +122,17 @@ public class RecipeService {
 
         recipe = foodRepository.save(recipe);
 
-        // Connect the recipe to the selected existing Foods.
-        for (int index = 0; index < request.ingredients().size(); index++) {
-            RecipeRequest.IngredientRequest ingredient = request.ingredients().get(index);
-            Food ingredientFood = ingredientFoods.get(index);
+        // Store USDA references, quantities, and units for this recipe.
+        for (RecipeRequest.IngredientRequest ingredient : request.ingredients()) {
 
-            FoodIngredient relationship = new FoodIngredient(
+            RecipeFood relationship = new RecipeFood(
                     recipe,
-                    ingredientFood,
+                    ingredient.usdaFdcId(),
                     ingredient.quantity(),
                     ingredient.unit().trim()
             );
 
-            foodIngredientRepository.save(relationship);
+            recipeFoodRepository.save(relationship);
         }
 
         // Save optional preparation instructions.

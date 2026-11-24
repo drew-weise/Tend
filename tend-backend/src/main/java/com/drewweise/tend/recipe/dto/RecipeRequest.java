@@ -10,10 +10,5 @@ public record RecipeRequest(
         List<IngredientRequest> ingredients,
         List<String> instructions
 ) {
-    public record IngredientRequest(
-            Integer foodId,
-            BigDecimal quantity,
-            String unit
-    ) {
-    }
+    public record IngredientRequest(Long usdaFdcId, BigDecimal quantity, String unit) { }
 }

@@ -4,7 +4,7 @@ export interface CreateRecipeRequest {
     description: string
     servings: number
     ingredients: {
-        foodId: number
+        usdaFdcId: string | null
         quantity: number
         unit: string
     }[]

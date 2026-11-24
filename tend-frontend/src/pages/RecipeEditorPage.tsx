@@ -6,9 +6,9 @@ import { useApi } from '../hooks/useApi'
 import { createRecipe } from '../features/recipes/api/createRecipe'
 import IngredientFoodSearch from '../features/recipes/components/IngredientFoodSearch'
 
-export interface RecipeIngredient {
+export interface RecipeFood {
     id: string
-    foodId: number | null
+    usdaFdcId: string | null
     name: string
     quantity: string
     unit: string
@@ -18,13 +18,13 @@ export interface RecipeDraft {
     name: string
     description: string
     servings: number
-    ingredients: RecipeIngredient[]
+    ingredients: RecipeFood[]
     instructions: string[]
 }
 
-const createIngredient = (): RecipeIngredient => ({
+const createIngredient = (): RecipeFood => ({
     id: crypto.randomUUID(),
-    foodId: null,
+    usdaFdcId: null,
     name: '',
     quantity: '',
     unit: 'g',
@@ -63,7 +63,7 @@ export default function RecipeEditorPage() {
         (
             recipe.ingredients.length === 0 ||
             recipe.ingredients.some(ingredient =>
-                !ingredient.foodId ||
+                !ingredient.usdaFdcId ||
                 !ingredient.quantity.trim() ||
                 !Number.isFinite(Number(ingredient.quantity)) ||
                 Number(ingredient.quantity) <= 0 ||
@@ -101,7 +101,7 @@ export default function RecipeEditorPage() {
                         ...ingredient,
                         [field]: value,
                         ...(field === 'name'
-                            ? { foodId: null }
+                            ? { usdaFdcId: null }
                             : {}),
                     }
                     : ingredient
@@ -152,7 +152,7 @@ export default function RecipeEditorPage() {
         if (
             recipe.ingredients.length === 0 ||
             recipe.ingredients.some(ingredient =>
-                !ingredient.foodId ||
+                !ingredient.usdaFdcId ||
                 !ingredient.quantity.trim() ||
                 !Number.isFinite(Number(ingredient.quantity)) ||
                 Number(ingredient.quantity) <= 0 ||
@@ -160,7 +160,7 @@ export default function RecipeEditorPage() {
             )
         ) {
             setError(
-                'Select an existing food for every ingredient and enter a positive quantity and unit.'
+                'Select a food for every ingredient and enter a positive quantity and unit.'
             )
             return
         }
@@ -173,7 +173,7 @@ export default function RecipeEditorPage() {
                 description: recipe.description.trim(),
                 servings: recipe.servings,
                 ingredients: recipe.ingredients.map(ingredient => ({
-                    foodId: ingredient.foodId!,
+                    usdaFdcId: ingredient.usdaFdcId,
                     quantity: Number(ingredient.quantity),
                     unit: ingredient.unit,
                 })),
@@ -313,7 +313,7 @@ export default function RecipeEditorPage() {
                                 const invalid =
                                     attemptedSave &&
                                     (
-                                        !ingredient.foodId ||
+                                        !ingredient.usdaFdcId ||
                                         !ingredient.quantity.trim() ||
                                         !Number.isFinite(Number(ingredient.quantity)) ||
                                         Number(ingredient.quantity) <= 0 ||
@@ -348,13 +348,13 @@ export default function RecipeEditorPage() {
                                         <div className="space-y-3">
                                             <IngredientFoodSearch
                                                 name={ingredient.name}
-                                                foodId={ingredient.foodId}
+                                                selected={ingredient.usdaFdcId !== null}
                                                 label={`Ingredient ${index + 1} food search`}
                                                 onQueryChange={query => updateIngredient(ingredient.id, 'name', query)}
                                                 onSelect={food => setRecipe(previous => ({
                                                     ...previous,
                                                     ingredients: previous.ingredients.map(item => item.id === ingredient.id
-                                                        ? { ...item, name: food.name, foodId: food.foodId }
+                                                        ? { ...item, name: food.name, usdaFdcId: food.usdaFdcId }
                                                         : item),
                                                 }))}
                                             />

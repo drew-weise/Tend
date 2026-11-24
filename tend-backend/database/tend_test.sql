@@ -125,7 +125,7 @@ CREATE TABLE nutrition (
 
 -- ============================================
 -- 5. FOOD INGREDIENTS
--- Foods can be composed of other Foods.
+-- Recipe ingredients reference foods in the separate USDA database.
 -- ============================================
 
 CREATE TABLE food_ingredients (
@@ -134,8 +134,8 @@ CREATE TABLE food_ingredients (
     -- The food being prepared
                                   parent_food_id INT NOT NULL,
 
-    -- A food used as an ingredient
-                                  ingredient_food_id INT NOT NULL,
+    -- USDA reference; validated by the application, not a cross-database foreign key
+                                  usda_fdc_id BIGINT NOT NULL,
 
                                   quantity DECIMAL(10,3) NOT NULL,
                                   unit VARCHAR(50) NOT NULL,
@@ -143,18 +143,10 @@ CREATE TABLE food_ingredients (
                                   CONSTRAINT chk_ingredient_quantity
                                       CHECK (quantity > 0),
 
-                                  CONSTRAINT chk_ingredient_not_self
-                                      CHECK (parent_food_id <> ingredient_food_id),
-
                                   CONSTRAINT fk_ingredient_parent
                                       FOREIGN KEY (parent_food_id)
                                           REFERENCES foods(food_id)
-                                          ON DELETE CASCADE,
-
-                                  CONSTRAINT fk_ingredient_food
-                                      FOREIGN KEY (ingredient_food_id)
-                                          REFERENCES foods(food_id)
-                                          ON DELETE RESTRICT
+                                          ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 
@@ -348,20 +340,8 @@ VALUES
 -- 11. SAMPLE FOOD INGREDIENTS
 -- ============================================
 
-INSERT INTO food_ingredients (
-    parent_food_id,
-    ingredient_food_id,
-    quantity,
-    unit
-)
-VALUES
-    -- Eggs and Toast
-    (6, 2, 2, 'egg'),
-    (6, 3, 2, 'slice'),
-
-    -- Yogurt Bowl
-    (7, 4, 170, 'g'),
-    (7, 1, 1, 'banana');
+-- Ingredient examples must use real IDs from the local USDA database.
+-- No Tend food IDs are seeded as USDA references.
 
 
 -- ============================================
@@ -469,7 +449,7 @@ ORDER BY
 
 SELECT
     parent.name AS food_name,
-    ingredient.name AS ingredient_name,
+    fi.usda_fdc_id,
     fi.quantity,
     fi.unit
 
@@ -477,9 +457,6 @@ FROM food_ingredients fi
 
          JOIN foods parent
               ON fi.parent_food_id = parent.food_id
-
-         JOIN foods ingredient
-              ON fi.ingredient_food_id = ingredient.food_id
 
 ORDER BY
     parent.food_id,

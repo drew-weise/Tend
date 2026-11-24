@@ -42,7 +42,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 6. Allow your React application (running on localhost:5173) to connect
+    // 6. Allow React application (running on localhost:5173) to connect
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
